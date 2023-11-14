@@ -21,6 +21,22 @@
         </tbody>
       </table>
     </div>
+
+    <br>
+
+    <div class="createTemperatura">
+      <form @submit.prevent="submitNovaTemperatura">
+        <div>
+          <label for="dataHora">Data/Hora:</label>
+          <input type="datetime-local" id="dataHora" v-model="novaTemperatura.dataHora" required>
+        </div>
+        <div>
+          <label for="medida">Medida (°C):</label>
+          <input type="number" id="medida" v-model.number="novaTemperatura.medida" required>
+        </div>
+        <button type="submit">Cadastrar Temperatura</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -34,8 +50,10 @@ type Temperatura = {
   dataHora: string;
   medida: number;
 };
+type NovaTemperatura = { dataHora: string, medida: number };
 
 const temperaturas = ref<Temperatura[]>([]);
+const novaTemperatura = ref<NovaTemperatura>({ dataHora: '', medida: 0 });
 
 const fetchTemperaturas = async () => {
   try {
@@ -52,6 +70,16 @@ const getSensacao = (medida: number): string => {
 
 const formatarDataHora = (dataHora: string): string => {
   return format(new Date(dataHora), 'dd/MM/yyyy HH:mm');
+};
+
+const submitNovaTemperatura = async () => {
+  try {
+    await axios.post('/temperatura', novaTemperatura.value);
+    fetchTemperaturas(); // Atualiza a lista
+    novaTemperatura.value = { dataHora: '', medida: 0 }; // Limpa os campos
+  } catch (error) {
+    console.error('Erro ao cadastrar temperatura:', error);
+  }
 };
 
 onMounted(() => {
