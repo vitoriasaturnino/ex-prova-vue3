@@ -1,6 +1,23 @@
 <template>
-  <div>
-    <div class="temperaturas">
+  <div cass="searchTemperatura">
+    <h1>Buscar Temperaturas</h1>
+      <form @submit.prevent="buscarTemperatura">
+        <div>
+          <label for="buscaDataHora">Data/Hora:</label>
+          <input type="datetime-local" id="buscaDataHora" v-model="busca.dataHora">
+        </div>
+        <div>
+          <label for="buscaMedida">Medida (°C):</label>
+          <input type="number" id="buscaMedida" v-model.number="busca.medida">
+        </div>
+        <button type="submit">Buscar Temperatura</button>
+      </form>
+  </div>
+
+  <br>
+
+  <div class="temperaturas">
+    <div v-if="temperaturas.length > 0">
       <h1>Tabela de Temperaturas</h1>
       <table>
         <thead>
@@ -20,11 +37,17 @@
           </tr>
         </tbody>
       </table>
+      <br>
     </div>
+    <div v-else>
+      Nenhum registro encontrado de acordo com a busca realizada =()
+    </div>
+  </div>
 
     <br>
 
     <div class="createTemperatura">
+      <h1>Cadastrar nova Temperatura</h1>
       <form @submit.prevent="submitNovaTemperatura">
         <div>
           <label for="dataHora">Data/Hora:</label>
@@ -37,7 +60,8 @@
         <button type="submit">Cadastrar Temperatura</button>
       </form>
     </div>
-  </div>
+
+    <br>
 </template>
 
 <script setup lang="ts">
@@ -51,9 +75,11 @@ type Temperatura = {
   medida: number;
 };
 type NovaTemperatura = { dataHora: string, medida: number };
+type Busca = { dataHora: string, medida: number | null };
 
 const temperaturas = ref<Temperatura[]>([]);
 const novaTemperatura = ref<NovaTemperatura>({ dataHora: '', medida: 0 });
+const busca = ref<Busca>({ dataHora: '', medida: null });
 
 const fetchTemperaturas = async () => {
   try {
@@ -79,6 +105,21 @@ const submitNovaTemperatura = async () => {
     novaTemperatura.value = { dataHora: '', medida: 0 }; // Limpa os campos
   } catch (error) {
     console.error('Erro ao cadastrar temperatura:', error);
+  }
+};
+
+// a requisição está diferente do que o back-end está esperando
+const buscarTemperatura = async () => {
+  try {
+    const response = await axios.get('/temperatura', { 
+      params: { 
+        dataHora: busca.value.dataHora, 
+        medida: busca.value.medida 
+      } 
+    });
+    temperaturas.value = response.data;
+  } catch (error) {
+    console.error('Erro ao buscar temperatura:', error);
   }
 };
 
